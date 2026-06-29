@@ -18,4 +18,9 @@ export function getAuthService(): AuthService {
 /** Real Google kirish faolmi (UI matnlari uchun). */
 export const isGoogleAuthEnabled = Boolean(config.googleClientId);
 
+/** Kirish skriptlarini oldindan yuklash (login sahifasi mount'ida chaqiriladi). */
+export function preloadAuth(): void {
+  getAuthService().preload?.();
+}
+
 export type { AuthService, AuthUser } from "./types";

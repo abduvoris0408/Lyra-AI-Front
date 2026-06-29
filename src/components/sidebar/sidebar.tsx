@@ -43,6 +43,7 @@ export function Sidebar({
   const displayName = user?.name ?? "Foydalanuvchi";
 
   const [query, setQuery] = useState("");
+  const [searchOpen, setSearchOpen] = useState(false);
   const filtered = query.trim()
     ? conversations.filter((c) =>
         c.title.toLowerCase().includes(query.trim().toLowerCase()),
@@ -65,7 +66,7 @@ export function Sidebar({
 
       <aside
         className={cn(
-          "fixed z-40 h-full w-72 overflow-hidden border-r border-line bg-sidebar transition-[width,transform] duration-700 ease-in-out md:relative md:translate-x-0",
+          "fixed z-40 h-full w-72 overflow-hidden border-r border-line bg-sidebar transition-all duration-500 ease-in-out will-change-transform md:relative md:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
           collapsed && "md:w-17",
         )}
@@ -86,20 +87,33 @@ export function Sidebar({
                 Lyra
               </span>
             </div>
-            <button
-              onClick={toggleSidebar}
-              aria-label="Toggle"
-              className="hidden h-9 w-9 items-center justify-center rounded-lg text-ink-soft transition hover:bg-elevated md:flex"
-            >
-              <PanelLeftClose size={19} />
-            </button>
-            <button
-              onClick={onClose}
-              aria-label={t("common.close")}
-              className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-soft transition hover:bg-elevated md:hidden"
-            >
-              <PanelLeft size={19} />
-            </button>
+            <div className="flex items-center gap-0.5">
+              <button
+                onClick={() => setSearchOpen((o) => !o)}
+                aria-label={t("chat.searchPlaceholder")}
+                title={t("chat.searchPlaceholder")}
+                className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-lg text-ink-soft transition hover:bg-elevated",
+                  searchOpen && "bg-elevated text-ink",
+                )}
+              >
+                <Search size={18} />
+              </button>
+              <button
+                onClick={toggleSidebar}
+                aria-label="Toggle"
+                className="hidden h-9 w-9 items-center justify-center rounded-lg text-ink-soft transition hover:bg-elevated md:flex"
+              >
+                <PanelLeftClose size={19} />
+              </button>
+              <button
+                onClick={onClose}
+                aria-label={t("common.close")}
+                className="flex h-9 w-9 items-center justify-center rounded-lg text-ink-soft transition hover:bg-elevated md:hidden"
+              >
+                <PanelLeft size={19} />
+              </button>
+            </div>
           </div>
 
           <div className="px-3 pb-2">
@@ -126,11 +140,13 @@ export function Sidebar({
 
           <div className="mx-3 mb-2 border-t border-line" />
 
-          {conversations.length > 0 && (
+          {searchOpen && (
             <div className="px-3 pb-2">
               <div className="flex items-center gap-2 rounded-lg border border-line bg-surface px-3 py-2">
                 <Search size={15} className="shrink-0 text-muted" />
                 <input
+                  // biome-ignore lint/a11y/noAutofocus: qidiruv ochilganda darhol yozish uchun
+                  autoFocus
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder={t("chat.searchPlaceholder")}

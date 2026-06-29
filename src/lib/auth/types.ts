@@ -14,4 +14,10 @@ export interface AuthService {
   signInWithGoogle(): Promise<AuthUser>;
   /** Chiqish (server sessiyasi bo'lsa, uni ham tozalaydi). */
   signOut(): Promise<void>;
+  /**
+   * (Ixtiyoriy) Kirish skriptlarini oldindan yuklash. Safari/iOS popup'ni
+   * faqat foydalanuvchi tegintirgan zahoti (sync) ochishga ruxsat beradi,
+   * shuning uchun skriptni oldindan tayyorlab qo'yamiz.
+   */
+  preload?(): void;
 }

@@ -89,6 +89,23 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  /* iOS Safari: matn o'lchamini avtomatik kattalashtirmaslik */
+  -webkit-text-size-adjust: 100%;
+}
+
+/* iOS/mobil: tegintirish ishonchli va tez bo'lsin (300ms kechikishsiz,
+   ko'k tap-highlight'siz). Bosiladigan elementlarga qo'llanadi. */
+button,
+[role="button"],
+[role="menuitem"],
+a,
+label,
+summary,
+input,
+textarea,
+select {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* Bosiladigan elementlarda doimo "qo'l" kursori (Tailwind v4 default'ini bekor qiladi) */

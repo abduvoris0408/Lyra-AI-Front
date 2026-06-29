@@ -48,6 +48,11 @@ function loadGis(): Promise<void> {
 }
 
 export class GoogleAuthService implements AuthService {
+  /** Skriptni oldindan yuklaymiz (iOS Safari popup gesture'i uzilmasligi uchun). */
+  preload(): void {
+    loadGis().catch(() => {});
+  }
+
   async signInWithGoogle(): Promise<AuthUser> {
     await loadGis();
     const google = (window as unknown as { google: GoogleGsi }).google;

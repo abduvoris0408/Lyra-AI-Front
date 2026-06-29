@@ -10,7 +10,7 @@ import { LanguageSwitcher } from "@/components/i18n/language-switcher";
 import { useI18n } from "@/components/i18n/language-provider";
 import { ThemeToggleButton } from "@/components/theme/theme-toggle-button";
 import { useAuth } from "@/hooks/use-auth";
-import { isGoogleAuthEnabled } from "@/lib/auth";
+import { isGoogleAuthEnabled, preloadAuth } from "@/lib/auth";
 import { config } from "@/lib/config";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -28,13 +28,19 @@ export default function LoginPage() {
     }
   }, [hydrated, user, onboarded, router]);
 
+  // Google skriptini oldindan yuklaymiz — iOS Safari'da popup faqat to'g'ridan
+  // foydalanuvchi tegintirgan zahoti ochiladi, kechikish bo'lsa bloklanadi.
+  useEffect(() => {
+    preloadAuth();
+  }, []);
+
   const handleSignIn = async () => {
     const u = await signIn();
     if (u) router.replace(onboarded ? "/chat" : "/onboarding");
   };
 
   return (
-    <div className="relative flex min-h-full flex-col">
+    <div className="relative flex min-h-dvh flex-col">
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"

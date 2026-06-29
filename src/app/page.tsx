@@ -3,7 +3,6 @@
 import {
   ArrowRight,
   ArrowUp,
-  Check,
   ChevronDown,
   MessageSquare,
   ShieldCheck,
@@ -16,6 +15,7 @@ import { useEffect, useState } from "react";
 import { LyraMark } from "@/components/brand/lyra-mark";
 import { useI18n } from "@/components/i18n/language-provider";
 import { LanguageSwitcher } from "@/components/i18n/language-switcher";
+import { PricingPlans } from "@/components/pricing/pricing-plans";
 import { ThemeToggleButton } from "@/components/theme/theme-toggle-button";
 import { config } from "@/lib/config";
 import { cn } from "@/lib/utils";
@@ -32,7 +32,7 @@ export default function LandingPage() {
   }, [hydrated, user, router]);
 
   return (
-    <div className="relative flex min-h-full flex-col">
+    <div className="relative flex min-h-dvh flex-col">
       {/* Dekorativ blur — alohida fixed qatlamda, shunda u root scroll
           konteyneriga aylanmaydi va navbar sticky'si buzilmaydi. */}
       <div
@@ -160,64 +160,8 @@ export default function LandingPage() {
           title={t("pricing.title")}
           subtitle={t("pricing.subtitle")}
         />
-        <div className="mx-auto mt-10 grid max-w-3xl gap-5 sm:grid-cols-2">
-          {/* Bepul */}
-          <div className="flex flex-col rounded-3xl border border-line bg-surface p-7">
-            <h3 className="text-lg font-semibold text-ink">
-              {t("pricing.freeName")}
-            </h3>
-            <p className="mt-1 text-sm text-muted">{t("pricing.freeDesc")}</p>
-            <div className="mt-5 flex items-end gap-1">
-              <span className="font-serif text-4xl font-medium text-ink">
-                {t("pricing.freePrice")}
-              </span>
-              <span className="mb-1.5 text-sm text-muted">
-                {t("pricing.monthly")}
-              </span>
-            </div>
-            <ul className="mt-6 flex-1 space-y-3">
-              {["free1", "free2", "free3", "free4"].map((k) => (
-                <PlanFeature key={k} text={t(`pricing.${k}`)} />
-              ))}
-            </ul>
-            <Link
-              href="/login"
-              className="mt-7 flex items-center justify-center rounded-full border border-line-strong bg-surface px-6 py-3 text-sm font-medium text-ink transition hover:bg-elevated"
-            >
-              {t("pricing.freeCta")}
-            </Link>
-          </div>
-
-          {/* Pro */}
-          <div className="relative flex flex-col overflow-hidden rounded-3xl border-2 border-accent bg-surface p-7 shadow-lg">
-            <span className="absolute right-5 top-5 flex items-center gap-1 rounded-full bg-accent px-2.5 py-1 text-xs font-medium text-white">
-              <Sparkles size={12} />
-              {t("pricing.proBadge")}
-            </span>
-            <h3 className="text-lg font-semibold text-ink">
-              {t("pricing.proName")}
-            </h3>
-            <p className="mt-1 text-sm text-muted">{t("pricing.proDesc")}</p>
-            <div className="mt-5 flex items-end gap-1">
-              <span className="font-serif text-4xl font-medium text-ink">
-                {t("pricing.proPrice")}
-              </span>
-              <span className="mb-1.5 text-sm text-muted">
-                {t("pricing.monthly")}
-              </span>
-            </div>
-            <ul className="mt-6 flex-1 space-y-3">
-              {["pro1", "pro2", "pro3", "pro4", "pro5"].map((k) => (
-                <PlanFeature key={k} text={t(`pricing.${k}`)} accent />
-              ))}
-            </ul>
-            <Link
-              href="/login"
-              className="mt-7 flex items-center justify-center rounded-full bg-accent px-6 py-3 text-sm font-medium text-white shadow-sm transition hover:bg-accent-hover"
-            >
-              {t("pricing.proCta")}
-            </Link>
-          </div>
+        <div className="mt-12">
+          <PricingPlans mode="landing" />
         </div>
       </section>
 
@@ -341,18 +285,6 @@ function SectionHeading({
       </h2>
       <p className="mx-auto mt-3 max-w-lg text-muted">{subtitle}</p>
     </div>
-  );
-}
-
-function PlanFeature({ text, accent }: { text: string; accent?: boolean }) {
-  return (
-    <li className="flex items-start gap-2.5 text-sm text-ink-soft">
-      <Check
-        size={17}
-        className={cn("mt-0.5 shrink-0", accent ? "text-accent" : "text-muted")}
-      />
-      {text}
-    </li>
   );
 }
 
