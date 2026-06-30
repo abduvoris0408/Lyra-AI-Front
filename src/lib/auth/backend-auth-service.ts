@@ -35,8 +35,11 @@ export class BackendAuthService implements AuthService {
 
   async getSession(): Promise<AuthUser | null> {
     try {
+      // cache: "no-store" — 304 (Not Modified) keshini oldini olamiz, aks holda
+      // res.ok=false bo'lib sessiya yo'qdek ko'rinadi.
       const res = await fetch(`${config.apiUrl}/auth/me`, {
         credentials: "include",
+        cache: "no-store",
       });
       if (res.ok) return this.toUser(await res.json());
 
@@ -45,6 +48,7 @@ export class BackendAuthService implements AuthService {
         const refreshed = await fetch(`${config.apiUrl}/auth/refresh`, {
           method: "POST",
           credentials: "include",
+          cache: "no-store",
         });
         if (refreshed.ok) return this.toUser(await refreshed.json());
       }

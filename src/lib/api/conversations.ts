@@ -45,6 +45,7 @@ function toMessage(m: ServerMessage): Message {
 async function api<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${config.apiUrl}${path}`, {
     credentials: "include",
+    cache: "no-store", // 304 keshini oldini olamiz (res.ok=false bo'lib qolmasin)
     ...init,
     headers: { "Content-Type": "application/json", ...init?.headers },
   });
