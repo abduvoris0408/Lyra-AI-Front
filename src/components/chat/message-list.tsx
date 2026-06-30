@@ -10,10 +10,12 @@ export function MessageList({
   messages,
   isStreaming,
   onRegenerate,
+  onEdit,
 }: {
   messages: Message[];
   isStreaming: boolean;
   onRegenerate: () => void;
+  onEdit?: (messageId: string, newContent: string) => void;
 }) {
   const { t } = useI18n();
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -65,6 +67,7 @@ export function MessageList({
             onRegenerate={
               !isStreaming && m.id === lastAssistantId ? onRegenerate : undefined
             }
+            onEdit={!isStreaming ? onEdit : undefined}
           />
         ))}
         <div ref={bottomRef} className="h-px" />

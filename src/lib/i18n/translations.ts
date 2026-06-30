@@ -173,6 +173,9 @@ export const dictionaries = {
       regenerate: "Qayta yaratish",
       copy: "Nusxa olish",
       copied: "Nusxa olindi",
+      edit: "Tahrirlash",
+      share: "Ulashish",
+      shared: "Havola nusxalandi",
       emptyConversations: "Hali suhbatlar yo'q",
       conversations: "Suhbatlar",
       searchPlaceholder: "Suhbatlarni qidirish…",
@@ -180,6 +183,9 @@ export const dictionaries = {
       thinking: "O'ylayapti",
       scrollToBottom: "Pastga o'tish",
       freePlan: "Bepul reja",
+      deleteTitle: "Suhbatni o'chirish",
+      deleteDescription:
+        "Bu suhbat butunlay o'chiriladi. Bu amalni qaytarib bo'lmaydi.",
     },
     settings: {
       title: "Sozlamalar",
@@ -370,6 +376,9 @@ export const dictionaries = {
       regenerate: "Regenerate",
       copy: "Copy",
       copied: "Copied",
+      edit: "Edit",
+      share: "Share",
+      shared: "Link copied",
       emptyConversations: "No conversations yet",
       conversations: "Conversations",
       searchPlaceholder: "Search conversations…",
@@ -377,6 +386,9 @@ export const dictionaries = {
       thinking: "Thinking",
       scrollToBottom: "Scroll to bottom",
       freePlan: "Free plan",
+      deleteTitle: "Delete chat",
+      deleteDescription:
+        "This conversation will be permanently deleted. This action cannot be undone.",
     },
     settings: {
       title: "Settings",

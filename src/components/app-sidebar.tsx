@@ -1,10 +1,19 @@
 "use client";
 
 import { MoreHorizontal, Pencil, Plus, Search, Trash2 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { LyraMark } from "@/components/brand/lyra-mark";
 import { useI18n } from "@/components/i18n/language-provider";
 import { UserAvatar, UserMenu } from "@/components/sidebar/user-menu";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,12 +51,14 @@ export function AppSidebar() {
 
   const conversations = useChatStore((s) => s.conversations);
   const currentId = useChatStore((s) => s.currentId);
-  const newConversation = useChatStore((s) => s.newConversation);
+  const createConversation = useChatStore((s) => s.createConversation);
   const selectConversation = useChatStore((s) => s.selectConversation);
   const deleteConversation = useChatStore((s) => s.deleteConversation);
   const renameConversation = useChatStore((s) => s.renameConversation);
 
   const [query, setQuery] = useState("");
+  const [pendingDelete, setPendingDelete] = useState<Conversation | null>(null);
+
   const filtered = query.trim()
     ? conversations.filter((c) =>
         c.title.toLowerCase().includes(query.trim().toLowerCase()),
@@ -57,7 +68,7 @@ export function AppSidebar() {
   const displayName = user?.name ?? "Foydalanuvchi";
 
   const startNewChat = () => {
-    newConversation();
+    void createConversation();
     setOpenMobile(false);
   };
 
@@ -66,110 +77,144 @@ export function AppSidebar() {
     setOpenMobile(false);
   };
 
+  const confirmDelete = () => {
+    if (pendingDelete) deleteConversation(pendingDelete.id);
+    setPendingDelete(null);
+  };
+
   return (
-    <Sidebar collapsible="icon">
-      <SidebarHeader>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" asChild>
-              <a href="/chat">
-                <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-accent text-white">
-                  <LyraMark className="size-4" />
-                </span>
-                <span className="font-serif text-base font-semibold text-ink">
-                  Lyra
-                </span>
-              </a>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarHeader>
-
-      <SidebarContent>
-        <SidebarGroup className="pb-0">
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={startNewChat}
-                  tooltip={t("common.newChat")}
-                  className="font-medium text-accent"
-                >
-                  <Plus />
-                  <span>{t("common.newChat")}</span>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        {/* Qidiruv — yig'ilgan (icon) rejimda yashirinadi */}
-        <SidebarGroup className="py-0 group-data-[collapsible=icon]:hidden">
-          <SidebarGroupContent className="relative">
-            <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted" />
-            <SidebarInput
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t("chat.searchPlaceholder")}
-              className="pl-8"
-            />
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-          <SidebarGroupLabel>{t("chat.conversations")}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {conversations.length === 0 ? (
-                <p className="px-2 py-6 text-center text-sm text-muted">
-                  {t("chat.emptyConversations")}
-                </p>
-              ) : filtered.length === 0 ? (
-                <p className="px-2 py-6 text-center text-sm text-muted">
-                  {t("chat.noResults")}
-                </p>
-              ) : (
-                filtered.map((c) => (
-                  <ConversationRow
-                    key={c.id}
-                    conversation={c}
-                    active={c.id === currentId}
-                    onSelect={() => handleSelect(c.id)}
-                    onDelete={() => deleteConversation(c.id)}
-                    onRename={(title) => renameConversation(c.id, title)}
-                  />
-                ))
-              )}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-
-      <SidebarFooter>
-        <SidebarMenu>
-          <SidebarMenuItem>
-            <UserMenu side="top" align="start">
-              <SidebarMenuButton
-                size="lg"
-                className="data-[state=open]:bg-sidebar-accent"
-              >
-                <UserAvatar user={user} size={32} />
-                <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-medium text-ink">
-                    {displayName}
+    <>
+      <Sidebar collapsible="icon">
+        <SidebarHeader>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              {/* Link — to'liq sahifa qayta yuklanmaydi (client navigatsiya) */}
+              <SidebarMenuButton size="lg" asChild tooltip="Lyra">
+                <Link href="/chat">
+                  <span className="flex aspect-square size-8 items-center justify-center rounded-lg bg-accent text-white">
+                    <LyraMark className="size-4" />
                   </span>
-                  <span className="truncate text-xs text-muted">
-                    {user?.email ?? t("chat.freePlan")}
+                  <span className="font-serif text-base font-semibold text-ink">
+                    Lyra
                   </span>
-                </div>
+                </Link>
               </SidebarMenuButton>
-            </UserMenu>
-          </SidebarMenuItem>
-        </SidebarMenu>
-      </SidebarFooter>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarHeader>
 
-      <SidebarRail />
-    </Sidebar>
+        <SidebarContent>
+          <SidebarGroup className="pb-0">
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={startNewChat}
+                    tooltip={t("common.newChat")}
+                    className="font-medium text-accent"
+                  >
+                    <Plus />
+                    <span>{t("common.newChat")}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          {/* Qidiruv — yig'ilgan (icon) rejimda yashirinadi */}
+          <SidebarGroup className="py-0 group-data-[collapsible=icon]:hidden">
+            <SidebarGroupContent className="relative">
+              <Search className="pointer-events-none absolute left-2 top-1/2 size-4 -translate-y-1/2 text-muted" />
+              <SidebarInput
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("chat.searchPlaceholder")}
+                className="pl-8"
+              />
+            </SidebarGroupContent>
+          </SidebarGroup>
+
+          <SidebarGroup className="group-data-[collapsible=icon]:hidden">
+            <SidebarGroupLabel>{t("chat.conversations")}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {conversations.length === 0 ? (
+                  <p className="px-2 py-6 text-center text-sm text-muted">
+                    {t("chat.emptyConversations")}
+                  </p>
+                ) : filtered.length === 0 ? (
+                  <p className="px-2 py-6 text-center text-sm text-muted">
+                    {t("chat.noResults")}
+                  </p>
+                ) : (
+                  filtered.map((c) => (
+                    <ConversationRow
+                      key={c.id}
+                      conversation={c}
+                      active={c.id === currentId}
+                      onSelect={() => handleSelect(c.id)}
+                      onRequestDelete={() => setPendingDelete(c)}
+                      onRename={(title) => renameConversation(c.id, title)}
+                    />
+                  ))
+                )}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        </SidebarContent>
+
+        <SidebarFooter>
+          <SidebarMenu>
+            <SidebarMenuItem>
+              <UserMenu side="top" align="start">
+                <SidebarMenuButton
+                  size="lg"
+                  className="data-[state=open]:bg-sidebar-accent"
+                >
+                  <UserAvatar user={user} size={32} />
+                  <div className="grid flex-1 text-left text-sm leading-tight">
+                    <span className="truncate font-medium text-ink">
+                      {displayName}
+                    </span>
+                    <span className="truncate text-xs text-muted">
+                      {user?.email ?? t("chat.freePlan")}
+                    </span>
+                  </div>
+                </SidebarMenuButton>
+              </UserMenu>
+            </SidebarMenuItem>
+          </SidebarMenu>
+        </SidebarFooter>
+
+        <SidebarRail />
+      </Sidebar>
+
+      {/* O'chirishni tasdiqlash — markazda modal (Claude uslubi) */}
+      <Dialog
+        open={pendingDelete !== null}
+        onOpenChange={(open) => !open && setPendingDelete(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("chat.deleteTitle")}</DialogTitle>
+            <DialogDescription>{t("chat.deleteDescription")}</DialogDescription>
+          </DialogHeader>
+          {pendingDelete && (
+            <p className="truncate rounded-lg bg-elevated px-3 py-2 text-sm font-medium text-ink">
+              {pendingDelete.title}
+            </p>
+          )}
+          <div className="flex justify-end gap-2">
+            <Button variant="ghost" onClick={() => setPendingDelete(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button variant="destructive" onClick={confirmDelete}>
+              {t("common.delete")}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
 
@@ -178,13 +223,13 @@ function ConversationRow({
   conversation,
   active,
   onSelect,
-  onDelete,
+  onRequestDelete,
   onRename,
 }: {
   conversation: Conversation;
   active: boolean;
   onSelect: () => void;
-  onDelete: () => void;
+  onRequestDelete: () => void;
   onRename: (title: string) => void;
 }) {
   const { t } = useI18n();
@@ -248,7 +293,7 @@ function ConversationRow({
           </DropdownMenuItem>
           <DropdownMenuItem
             className="items-center text-destructive focus:text-destructive"
-            onSelect={onDelete}
+            onSelect={onRequestDelete}
           >
             <Trash2 size={15} />
             {t("common.delete")}

@@ -113,7 +113,8 @@ export function useChat() {
       const store = useChatStore.getState();
       if (store.isStreaming) return;
 
-      const conversationId = store.currentId ?? store.newConversation();
+      const conversationId =
+        store.currentId ?? (await store.createConversation());
       const model = store.selectedModel;
 
       const userMsg: Message = {
@@ -170,11 +171,49 @@ export function useChat() {
     await runStream(conversationId, assistant.id, history, store.selectedModel);
   }, [runStream]);
 
+  /** Foydalanuvchi xabarini tahrirlab, o'sha nuqtadan javobni qayta oladi. */
+  const editAndResend = useCallback(
+    async (messageId: string, newContent: string) => {
+      const content = newContent.trim();
+      if (!content) return;
+
+      const store = useChatStore.getState();
+      if (store.isStreaming) return;
+
+      const conversationId = store.currentId;
+      if (!conversationId) return;
+
+      // Xabarni yangilaymiz va undan keyingi hammasini o'chiramiz
+      store.updateMessageContent(conversationId, messageId, content);
+      store.truncateAfter(conversationId, messageId);
+
+      const history =
+        useChatStore.getState().messagesByConversation[conversationId] ?? [];
+
+      const assistantMsg: Message = {
+        id: uid("msg_"),
+        role: "assistant",
+        content: "",
+        createdAt: nowISO(),
+        status: "streaming",
+      };
+      store.addMessage(conversationId, assistantMsg);
+
+      await runStream(
+        conversationId,
+        assistantMsg.id,
+        history,
+        store.selectedModel,
+      );
+    },
+    [runStream],
+  );
+
   const stop = useCallback(() => {
     abortRef.current?.abort();
     abortRef.current = null;
     useChatStore.getState().setStreaming(false);
   }, []);
 
-  return { send, regenerate, stop, isStreaming };
+  return { send, regenerate, editAndResend, stop, isStreaming };
 }

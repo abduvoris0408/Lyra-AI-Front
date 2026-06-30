@@ -62,7 +62,9 @@
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--elevated);
   --sidebar-accent-foreground: var(--ink);
-  --sidebar-border: var(--line);
+  /* Claude uslubi: sidebar va kontent orasida qattiq oq chiziq yo'q —
+     ajralish faqat fon ohangidan. Shuning uchun border sidebar foniga teng. */
+  --sidebar-border: var(--sidebar);
   --sidebar-ring: var(--accent);
 
   --background: var(--surface);

@@ -1,7 +1,7 @@
 "use client";
 
-import { Check, Copy, FileText, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { Check, Copy, FileText, Pencil, RefreshCw, Share2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
 import { LyraMark } from "@/components/brand/lyra-mark";
 import { useI18n } from "@/components/i18n/language-provider";
 import { cn } from "@/lib/utils";
@@ -11,20 +11,128 @@ import { Markdown } from "./markdown";
 export function MessageItem({
   message,
   onRegenerate,
+  onEdit,
 }: {
   message: Message;
   onRegenerate?: () => void;
+  onEdit?: (messageId: string, newContent: string) => void;
 }) {
   if (message.role === "user") {
-    return <UserMessage message={message} />;
+    return <UserMessage message={message} onEdit={onEdit} />;
   }
   return <AssistantMessage message={message} onRegenerate={onRegenerate} />;
 }
 
-function UserMessage({ message }: { message: Message }) {
-  const attachments = message.attachments ?? [];
+/** Hover'da chiqadigan kichik amal tugmasi (copy / edit / share / regenerate). */
+function ActionButton({
+  icon: Icon,
+  label,
+  onClick,
+}: {
+  icon: typeof Copy;
+  label: string;
+  onClick: () => void;
+}) {
   return (
-    <div className="lyra-fade-up flex flex-col items-end gap-1.5">
+    <button
+      onClick={onClick}
+      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition hover:bg-elevated hover:text-ink"
+    >
+      <Icon size={13} /> {label}
+    </button>
+  );
+}
+
+function useCopied() {
+  const [copied, setCopied] = useState(false);
+  const copy = async (text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
+  };
+  return { copied, copy };
+}
+
+function UserMessage({
+  message,
+  onEdit,
+}: {
+  message: Message;
+  onEdit?: (messageId: string, newContent: string) => void;
+}) {
+  const { t } = useI18n();
+  const { copied, copy } = useCopied();
+  const [editing, setEditing] = useState(false);
+  const [value, setValue] = useState(message.content);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  const attachments = message.attachments ?? [];
+
+  useEffect(() => {
+    if (editing) {
+      const el = textRef.current;
+      if (el) {
+        el.focus();
+        el.style.height = "auto";
+        el.style.height = `${el.scrollHeight}px`;
+        el.setSelectionRange(el.value.length, el.value.length);
+      }
+    }
+  }, [editing]);
+
+  const saveEdit = () => {
+    const next = value.trim();
+    if (next && next !== message.content) onEdit?.(message.id, next);
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <div className="lyra-fade-up flex flex-col items-end gap-2">
+        <div className="w-full max-w-[85%] rounded-bubble bg-user-bubble p-3">
+          <textarea
+            ref={textRef}
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              e.target.style.height = "auto";
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                saveEdit();
+              }
+              if (e.key === "Escape") {
+                setValue(message.content);
+                setEditing(false);
+              }
+            }}
+            className="max-h-60 w-full resize-none bg-transparent text-[15px] leading-7 text-ink outline-none"
+          />
+          <div className="mt-2 flex justify-end gap-2">
+            <button
+              onClick={() => {
+                setValue(message.content);
+                setEditing(false);
+              }}
+              className="rounded-md px-3 py-1.5 text-xs text-muted transition hover:bg-elevated hover:text-ink"
+            >
+              {t("common.cancel")}
+            </button>
+            <button
+              onClick={saveEdit}
+              className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-white transition hover:bg-accent-hover"
+            >
+              {t("chat.send")}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="lyra-fade-up group flex flex-col items-end gap-1.5">
       {attachments.length > 0 && (
         <div className="flex max-w-[78%] flex-wrap justify-end gap-2">
           {attachments.map((a) =>
@@ -57,6 +165,26 @@ function UserMessage({ message }: { message: Message }) {
           {message.content}
         </div>
       )}
+
+      {message.content && (
+        <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+          <ActionButton
+            icon={copied ? Check : Copy}
+            label={copied ? t("chat.copied") : t("chat.copy")}
+            onClick={() => copy(message.content)}
+          />
+          {onEdit && (
+            <ActionButton
+              icon={Pencil}
+              label={t("chat.edit")}
+              onClick={() => {
+                setValue(message.content);
+                setEditing(true);
+              }}
+            />
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -69,14 +197,26 @@ function AssistantMessage({
   onRegenerate?: () => void;
 }) {
   const { t } = useI18n();
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useCopied();
+  const [shared, setShared] = useState(false);
   const isStreaming = message.status === "streaming";
   const isEmpty = message.content.length === 0;
 
-  const copy = async () => {
+  const share = async () => {
+    const nav = navigator as Navigator & {
+      share?: (data: { text: string }) => Promise<void>;
+    };
+    try {
+      if (nav.share) {
+        await nav.share({ text: message.content });
+        return;
+      }
+    } catch {
+      // foydalanuvchi bekor qildi yoki qo'llab-quvvatlanmaydi — nusxaga o'tamiz
+    }
     await navigator.clipboard.writeText(message.content);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    setShared(true);
+    setTimeout(() => setShared(false), 1500);
   };
 
   return (
@@ -96,27 +236,22 @@ function AssistantMessage({
 
         {!isStreaming && !isEmpty && (
           <div className="mt-2 flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
-            <button
-              onClick={copy}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition hover:bg-elevated hover:text-ink"
-            >
-              {copied ? (
-                <>
-                  <Check size={13} /> {t("chat.copied")}
-                </>
-              ) : (
-                <>
-                  <Copy size={13} /> {t("chat.copy")}
-                </>
-              )}
-            </button>
+            <ActionButton
+              icon={copied ? Check : Copy}
+              label={copied ? t("chat.copied") : t("chat.copy")}
+              onClick={() => copy(message.content)}
+            />
+            <ActionButton
+              icon={shared ? Check : Share2}
+              label={shared ? t("chat.shared") : t("chat.share")}
+              onClick={share}
+            />
             {onRegenerate && (
-              <button
+              <ActionButton
+                icon={RefreshCw}
+                label={t("chat.regenerate")}
                 onClick={onRegenerate}
-                className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition hover:bg-elevated hover:text-ink"
-              >
-                <RefreshCw size={13} /> {t("chat.regenerate")}
-              </button>
+              />
             )}
           </div>
         )}

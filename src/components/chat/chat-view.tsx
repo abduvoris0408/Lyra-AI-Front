@@ -12,7 +12,7 @@ import { SuggestionChips } from "./suggestion-chips";
 const EMPTY: Message[] = [];
 
 export function ChatView() {
-  const { send, stop, regenerate, isStreaming } = useChat();
+  const { send, stop, regenerate, editAndResend, isStreaming } = useChat();
   const messages = useChatStore((s) =>
     s.currentId ? (s.messagesByConversation[s.currentId] ?? EMPTY) : EMPTY,
   );
@@ -38,6 +38,7 @@ export function ChatView() {
             messages={messages}
             isStreaming={isStreaming}
             onRegenerate={regenerate}
+            onEdit={editAndResend}
           />
           <ChatInput onSend={send} onStop={stop} isStreaming={isStreaming} />
         </>

@@ -13,18 +13,31 @@ import {
 } from "@/components/ui/sidebar";
 import { useChatStore } from "@/store/chat-store";
 
+/** sidebar_state cookie'sidan ochiq/yopiq holatni o'qiydi (refreshdan keyin saqlanadi). */
+function readSidebarOpen(): boolean {
+  if (typeof document === "undefined") return true;
+  const match = document.cookie.match(/(?:^|;\s*)sidebar_state=(true|false)/);
+  return match ? match[1] === "true" : true;
+}
+
 export default function ChatPage() {
   const [mounted, setMounted] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   // localStorage'dagi suhbatlar mount'dan keyin yuklanadi (hydration mosligi uchun)
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setSidebarOpen(readSidebarOpen());
+    setMounted(true);
+    // Backend rejimida suhbatlarni serverdan tortamiz (lokal rejimda no-op)
+    void useChatStore.getState().loadConversations();
+  }, []);
 
   return (
     <RequireAuth>
       {!mounted ? (
         <div className="h-full bg-canvas" />
       ) : (
-        <SidebarProvider>
+        <SidebarProvider defaultOpen={sidebarOpen}>
           <AppSidebar />
           <SidebarInset className="h-svh overflow-hidden">
             <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-3">

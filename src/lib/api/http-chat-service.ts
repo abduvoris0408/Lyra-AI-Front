@@ -22,9 +22,10 @@ export class HttpChatService implements ChatService {
       const res = await fetch(`${config.apiUrl}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        credentials: "include", // kelajakdagi httpOnly JWT cookie uchun
+        credentials: "include", // httpOnly JWT cookie bilan himoyalangan
         body: JSON.stringify({
           model: params.model,
+          conversationId: params.conversationId,
           messages: params.messages.map((m) => ({
             role: m.role,
             content: m.content,
