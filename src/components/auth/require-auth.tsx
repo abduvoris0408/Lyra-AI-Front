@@ -1,8 +1,8 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { LyraMark } from "@/components/brand/lyra-mark";
 import { getAuthService } from "@/lib/auth";
 import { useAuthStore } from "@/store/auth-store";
 
@@ -63,16 +63,12 @@ export function RequireAuth({
   }, [hydrated, checking, user, onboarded, requireOnboarded, router]);
 
   if (!hydrated || checking || !user || (requireOnboarded && !onboarded)) {
-    return <FullScreenLoader />;
+    return (
+      <div className="flex h-full min-h-dvh items-center justify-center bg-canvas">
+        <Loader2 className="h-6 w-6 animate-spin text-muted" />
+      </div>
+    );
   }
 
   return <>{children}</>;
-}
-
-function FullScreenLoader() {
-  return (
-    <div className="flex h-full items-center justify-center bg-canvas">
-      <LyraMark className="h-10 w-10 animate-pulse text-accent" />
-    </div>
-  );
 }

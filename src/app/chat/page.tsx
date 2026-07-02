@@ -35,13 +35,13 @@ export default function ChatPage() {
   return (
     <RequireAuth>
       {!mounted ? (
-        <div className="h-full bg-canvas" />
+        <div className="h-svh bg-canvas" />
       ) : (
         <SidebarProvider defaultOpen={sidebarOpen}>
           <AppSidebar />
-          <SidebarInset className="h-svh overflow-hidden">
-            <header className="flex h-14 shrink-0 items-center gap-2 border-b border-line px-3">
-              <SidebarTrigger className="-ml-1 text-ink-soft" />
+          <SidebarInset className="h-svh overflow-hidden bg-canvas">
+            <header className="sticky top-0 z-10 flex h-14 shrink-0 items-center gap-2 border-b border-line bg-canvas px-3">
+              <SidebarTrigger className="-ml-1 text-ink-soft transition hover:text-ink" />
               <Separator
                 orientation="vertical"
                 className="mr-1 data-[orientation=vertical]:h-4"

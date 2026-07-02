@@ -94,7 +94,7 @@ function PlanCard({
         >
           {plan.icon}
         </span>
-        <h3 className="text-lg font-semibold text-ink">{name}</h3>
+        <h3 className="text-lg font-medium text-ink">{name}</h3>
       </div>
 
       <p className="mt-3 text-sm text-muted">{desc}</p>

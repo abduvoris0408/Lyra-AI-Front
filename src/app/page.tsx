@@ -259,7 +259,7 @@ function Feature({
       <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-soft text-accent">
         {icon}
       </span>
-      <h3 className="mt-3 text-sm font-semibold text-ink">{title}</h3>
+      <h3 className="mt-3 text-sm font-medium text-ink">{title}</h3>
       <p className="mt-1 text-sm text-muted">{text}</p>
     </div>
   );
@@ -334,7 +334,7 @@ function FooterCol({
 }) {
   return (
     <div>
-      <h4 className="text-sm font-semibold text-ink">{title}</h4>
+      <h4 className="text-sm font-medium text-ink">{title}</h4>
       <ul className="mt-3 space-y-2">{children}</ul>
     </div>
   );

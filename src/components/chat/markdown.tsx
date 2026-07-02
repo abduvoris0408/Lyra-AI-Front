@@ -13,17 +13,17 @@ export function Markdown({ content }: { content: string }) {
         components={{
           p: ({ children }) => <p className="mb-4 last:mb-0">{children}</p>,
           h1: ({ children }) => (
-            <h1 className="mb-3 mt-6 font-serif text-2xl font-semibold first:mt-0">
+            <h1 className="mb-3 mt-6 font-serif text-2xl font-medium first:mt-0">
               {children}
             </h1>
           ),
           h2: ({ children }) => (
-            <h2 className="mb-3 mt-6 font-serif text-xl font-semibold first:mt-0">
+            <h2 className="mb-3 mt-6 font-serif text-xl font-medium first:mt-0">
               {children}
             </h2>
           ),
           h3: ({ children }) => (
-            <h3 className="mb-2 mt-5 text-lg font-semibold first:mt-0">
+            <h3 className="mb-2 mt-5 text-lg font-medium first:mt-0">
               {children}
             </h3>
           ),
@@ -49,7 +49,7 @@ export function Markdown({ content }: { content: string }) {
             </a>
           ),
           strong: ({ children }) => (
-            <strong className="font-semibold text-ink">{children}</strong>
+            <strong className="font-medium text-ink">{children}</strong>
           ),
           blockquote: ({ children }) => (
             <blockquote className="mb-4 border-l-2 border-accent/40 pl-4 italic text-ink-soft">
@@ -63,7 +63,7 @@ export function Markdown({ content }: { content: string }) {
             </div>
           ),
           th: ({ children }) => (
-            <th className="border-b border-line bg-elevated px-3 py-2 text-left font-semibold">
+            <th className="border-b border-line bg-elevated px-3 py-2 text-left font-medium">
               {children}
             </th>
           ),

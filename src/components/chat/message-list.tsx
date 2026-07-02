@@ -60,10 +60,11 @@ export function MessageList({
   return (
     <div className="relative flex-1 overflow-y-auto" ref={containerRef}>
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-7 px-4 py-8 md:px-6">
-        {messages.map((m) => (
+        {messages.map((m, i) => (
           <MessageItem
             key={m.id}
             message={m}
+            staggerIndex={messages.length - i <= 8 ? i : undefined}
             onRegenerate={
               !isStreaming && m.id === lastAssistantId ? onRegenerate : undefined
             }

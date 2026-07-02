@@ -1,29 +1,52 @@
 "use client";
 
-import { Check, Copy, FileText, Pencil, RefreshCw, Share2 } from "lucide-react";
+import {
+  Check,
+  Copy,
+  FileText,
+  Maximize2,
+  Pencil,
+  RefreshCw,
+  Share2,
+} from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { LyraMark } from "@/components/brand/lyra-mark";
 import { useI18n } from "@/components/i18n/language-provider";
 import { cn } from "@/lib/utils";
+import { previewImage } from "@/store/image-preview-store";
+import { toast } from "@/store/toast-store";
 import type { Message } from "@/types/chat";
 import { Markdown } from "./markdown";
 
 export function MessageItem({
   message,
+  staggerIndex,
   onRegenerate,
   onEdit,
 }: {
   message: Message;
+  staggerIndex?: number;
   onRegenerate?: () => void;
   onEdit?: (messageId: string, newContent: string) => void;
 }) {
+  const delayStyle =
+    staggerIndex !== undefined
+      ? ({ "--lyra-delay": `${staggerIndex * 45}ms` } as React.CSSProperties)
+      : undefined;
+
   if (message.role === "user") {
-    return <UserMessage message={message} onEdit={onEdit} />;
+    return <UserMessage message={message} onEdit={onEdit} style={delayStyle} />;
   }
-  return <AssistantMessage message={message} onRegenerate={onRegenerate} />;
+  return (
+    <AssistantMessage
+      message={message}
+      onRegenerate={onRegenerate}
+      style={delayStyle}
+    />
+  );
 }
 
-/** Hover'da chiqadigan kichik amal tugmasi (copy / edit / share / regenerate). */
+/** Xabar tagidagi kichik amal tugmasi (copy / edit / share / regenerate). */
 function ActionButton({
   icon: Icon,
   label,
@@ -36,7 +59,7 @@ function ActionButton({
   return (
     <button
       onClick={onClick}
-      className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted transition hover:bg-elevated hover:text-ink"
+      className="flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs text-ink-soft transition hover:bg-elevated hover:text-ink active:scale-95"
     >
       <Icon size={13} /> {label}
     </button>
@@ -44,10 +67,12 @@ function ActionButton({
 }
 
 function useCopied() {
+  const { t } = useI18n();
   const [copied, setCopied] = useState(false);
   const copy = async (text: string) => {
     await navigator.clipboard.writeText(text);
     setCopied(true);
+    toast(t("chat.toastCopied"), "success");
     setTimeout(() => setCopied(false), 1500);
   };
   return { copied, copy };
@@ -56,9 +81,11 @@ function useCopied() {
 function UserMessage({
   message,
   onEdit,
+  style,
 }: {
   message: Message;
   onEdit?: (messageId: string, newContent: string) => void;
+  style?: React.CSSProperties;
 }) {
   const { t } = useI18n();
   const { copied, copy } = useCopied();
@@ -87,7 +114,7 @@ function UserMessage({
 
   if (editing) {
     return (
-      <div className="lyra-fade-up flex flex-col items-end gap-2">
+      <div className="lyra-fade-up flex flex-col items-end gap-2" style={style}>
         <div className="w-full max-w-[85%] rounded-bubble bg-user-bubble p-3">
           <textarea
             ref={textRef}
@@ -132,18 +159,28 @@ function UserMessage({
   }
 
   return (
-    <div className="lyra-fade-up group flex flex-col items-end gap-1.5">
+    <div className="lyra-fade-up group flex flex-col items-end gap-1.5" style={style}>
       {attachments.length > 0 && (
         <div className="flex max-w-[78%] flex-wrap justify-end gap-2">
           {attachments.map((a) =>
             a.mimeType.startsWith("image/") ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
+              <button
                 key={a.id}
-                src={a.dataUrl}
-                alt={a.name}
-                className="max-h-48 rounded-2xl border border-line object-cover"
-              />
+                type="button"
+                onClick={() => previewImage(a.dataUrl, a.name)}
+                className="group/img relative overflow-hidden rounded-2xl border border-line transition hover:opacity-95"
+                aria-label={a.name}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={a.dataUrl}
+                  alt={a.name}
+                  className="max-h-48 object-cover"
+                />
+                <span className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 text-white/0 transition group-hover/img:bg-black/25 group-hover/img:text-white">
+                  <Maximize2 size={20} />
+                </span>
+              </button>
             ) : (
               <a
                 key={a.id}
@@ -167,7 +204,7 @@ function UserMessage({
       )}
 
       {message.content && (
-        <div className="flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+        <div className="flex items-center gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
           <ActionButton
             icon={copied ? Check : Copy}
             label={copied ? t("chat.copied") : t("chat.copy")}
@@ -192,36 +229,25 @@ function UserMessage({
 function AssistantMessage({
   message,
   onRegenerate,
+  style,
 }: {
   message: Message;
   onRegenerate?: () => void;
+  style?: React.CSSProperties;
 }) {
   const { t } = useI18n();
   const { copied, copy } = useCopied();
-  const [shared, setShared] = useState(false);
   const isStreaming = message.status === "streaming";
   const isEmpty = message.content.length === 0;
 
-  const share = async () => {
-    const nav = navigator as Navigator & {
-      share?: (data: { text: string }) => Promise<void>;
-    };
-    try {
-      if (nav.share) {
-        await nav.share({ text: message.content });
-        return;
-      }
-    } catch {
-      // foydalanuvchi bekor qildi yoki qo'llab-quvvatlanmaydi — nusxaga o'tamiz
-    }
-    await navigator.clipboard.writeText(message.content);
-    setShared(true);
-    setTimeout(() => setShared(false), 1500);
-  };
-
   return (
-    <div className="lyra-fade-up group flex gap-3.5">
-      <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-white">
+    <div className="lyra-fade-up group flex gap-3.5" style={style} id={message.id}>
+      <div
+        className={cn(
+          "mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-accent text-white shadow-[0_2px_10px_-2px_var(--color-accent)] transition-shadow",
+          isStreaming && "animate-pulse shadow-[0_0_0_4px_var(--color-accent-soft)]",
+        )}
+      >
         <LyraMark className="h-4 w-4" />
       </div>
 
@@ -235,16 +261,16 @@ function AssistantMessage({
         )}
 
         {!isStreaming && !isEmpty && (
-          <div className="mt-2 flex items-center gap-1 opacity-0 transition group-hover:opacity-100">
+          <div className="mt-2 flex items-center gap-1 opacity-100 transition md:opacity-0 md:group-hover:opacity-100">
             <ActionButton
               icon={copied ? Check : Copy}
               label={copied ? t("chat.copied") : t("chat.copy")}
               onClick={() => copy(message.content)}
             />
             <ActionButton
-              icon={shared ? Check : Share2}
-              label={shared ? t("chat.shared") : t("chat.share")}
-              onClick={share}
+              icon={Share2}
+              label={t("chat.share")}
+              onClick={() => shareLink(message.id, t("chat.toastLinkCopied"))}
             />
             {onRegenerate && (
               <ActionButton
@@ -258,6 +284,38 @@ function AssistantMessage({
       </div>
     </div>
   );
+}
+
+/**
+ * Xabarga havolani ulashadi. Mobil qurilmalarda tizim "Share" oynasini ochadi
+ * (navigator.share), aks holda havolani clipboard'ga nusxalaydi. Havola joriy
+ * sahifaga + xabar id'siga (#anchor) ishora qiladi.
+ *
+ * MUHIM: navigator.share() faqat sensorli (mobil) qurilmalarda chaqiriladi —
+ * Windows desktop'da u ko'pincha o'zining "Try that again" xatosini beradi.
+ */
+async function shareLink(messageId: string, copiedLabel: string) {
+  const url = `${window.location.origin}${window.location.pathname}#${messageId}`;
+  const isTouch =
+    typeof window !== "undefined" &&
+    window.matchMedia?.("(pointer: coarse)").matches;
+  const nav = navigator as Navigator & {
+    share?: (data: { url: string; title?: string }) => Promise<void>;
+  };
+  if (isTouch && nav.share) {
+    try {
+      await nav.share({ url, title: "Lyra AI" });
+      return;
+    } catch {
+      // foydalanuvchi bekor qildi yoki qo'llab-quvvatlanmaydi — nusxaga o'tamiz
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    toast(copiedLabel, "success");
+  } catch {
+    /* clipboard mavjud emas — e'tiborsiz */
+  }
 }
 
 function ThinkingDots() {

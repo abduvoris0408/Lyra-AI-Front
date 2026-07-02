@@ -56,6 +56,27 @@ interface ChatState {
   setStreaming: (value: boolean) => void;
 }
 
+/**
+ * Xabari yozilmagan (bo'sh) suhbat id'sini qaytaradi, bo'lmasa null.
+ * MUHIM: faqat lokal "aniq bo'sh" (messages === []) suhbatlar hisobga olinadi.
+ * Serverdan hali yuklanmagan (messages === undefined) suhbatlar bo'sh deb
+ * qaralmaydi — aks holda xabari bor suhbat noto'g'ri qayta ishlatilishi mumkin.
+ */
+function findEmptyConversation(state: {
+  conversations: Conversation[];
+  messagesByConversation: Record<string, Message[]>;
+  currentId: string | null;
+}): string | null {
+  const isKnownEmpty = (id: string) => {
+    const msgs = state.messagesByConversation[id];
+    return msgs !== undefined && msgs.length === 0;
+  };
+  // Avval joriy suhbatni tekshiramiz (eng ko'p uchraydigan holat).
+  if (state.currentId && isKnownEmpty(state.currentId)) return state.currentId;
+  const empty = state.conversations.find((c) => isKnownEmpty(c.id));
+  return empty?.id ?? null;
+}
+
 export const useChatStore = create<ChatState>()(
   persist(
     (set, get) => ({
@@ -78,6 +99,16 @@ export const useChatStore = create<ChatState>()(
       setModel: (model) => set({ selectedModel: model }),
 
       newConversation: () => {
+        // Bir vaqtning o'zida faqat BITTA bo'sh "Yangi suhbat" bo'lsin.
+        // Mavjud bo'sh (xabari yozilmagan) suhbat bo'lsa — yangisini yaratmasdan
+        // o'shanga o'tamiz. Shunda "Yangi suhbat" tugmasini ketma-ket bosganda
+        // ro'yxat bo'sh suhbatlar bilan to'lib ketmaydi.
+        const existingEmpty = findEmptyConversation(get());
+        if (existingEmpty) {
+          set({ currentId: existingEmpty });
+          return existingEmpty;
+        }
+
         const id = uid("conv_");
         const conv: Conversation = {
           id,
@@ -95,6 +126,13 @@ export const useChatStore = create<ChatState>()(
       },
 
       createConversation: async () => {
+        // Avval mavjud bo'sh suhbatni qayta ishlatamiz (server'da ham ortiqcha
+        // bo'sh suhbat yaratilmasligi uchun).
+        const existingEmpty = findEmptyConversation(get());
+        if (existingEmpty) {
+          set({ currentId: existingEmpty });
+          return existingEmpty;
+        }
         if (!syncEnabled) return get().newConversation();
         try {
           const conv = await conversationsApi.create(get().selectedModel);

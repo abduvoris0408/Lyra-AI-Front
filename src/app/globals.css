@@ -35,25 +35,25 @@
   --radius-bubble: 1.25rem;
 }
 
-/* ---- Yorug' mavzu (default) — neytral fon + binafsha urg'u ---- */
+/* ---- Yorug' mavzu (default) — Claude uslubidagi ILIQ (warm) neytral ohang ---- */
 :root {
-  --canvas: #f7f7f9;
-  --sidebar: #f1f1f4;
+  --canvas: #f5f4ee;
+  --sidebar: #ebe9e0;
   --surface: #ffffff;
-  --elevated: #f4f4f7;
+  --elevated: #eeece3;
 
-  --ink: #1e1e24;
-  --ink-soft: #45454f;
-  --muted: #6d6d78;
+  --ink: #201f19;
+  --ink-soft: #423f37;
+  --muted: #726e62;
 
-  --line: #e6e6ec;
-  --line-strong: #d6d6df;
+  --line: #dcd8c9;
+  --line-strong: #c7c1b0;
 
   --accent: #6d4aff;
   --accent-hover: #5a37e6;
   --accent-soft: #ece7ff;
 
-  --user-bubble: #efedfb;
+  --user-bubble: #eeebe1;
 
   /* ---- shadcn token'lari — Lyra palitrasiga bog'langan ----
      Hammasi var() orqali, shuning uchun .dark da avtomatik almashadi. */
@@ -62,9 +62,7 @@
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--elevated);
   --sidebar-accent-foreground: var(--ink);
-  /* Claude uslubi: sidebar va kontent orasida qattiq oq chiziq yo'q —
-     ajralish faqat fon ohangidan. Shuning uchun border sidebar foniga teng. */
-  --sidebar-border: var(--sidebar);
+  --sidebar-border: var(--line);
   --sidebar-ring: var(--accent);
 
   --background: var(--surface);
@@ -86,25 +84,25 @@
   --ring: var(--accent);
 }
 
-/* ---- Qorong'i mavzu ---- */
+/* ---- Qorong'i mavzu — Claude uslubidagi ILIQ (warm) qorong'i ohang ---- */
 .dark {
-  --canvas: #1a1a1f;
-  --sidebar: #151519;
-  --surface: #232329;
-  --elevated: #2c2c34;
+  --canvas: #262624;
+  --sidebar: #1d1c1a;
+  --surface: #33322f;
+  --elevated: #3d3b37;
 
-  --ink: #f2f2f6;
-  --ink-soft: #c7c7d1;
-  --muted: #8b8b97;
+  --ink: #faf8f2;
+  --ink-soft: #d8d4c9;
+  --muted: #a39e90;
 
-  --line: #313139;
-  --line-strong: #41414c;
+  --line: #4d4944;
+  --line-strong: #605b53;
 
-  --accent: #9b7dff;
-  --accent-hover: #ad93ff;
-  --accent-soft: #281f44;
+  --accent: #a385ff;
+  --accent-hover: #b599ff;
+  --accent-soft: #2e2547;
 
-  --user-bubble: #2c2c34;
+  --user-bubble: #35332f;
 
   /* shadcn token'lari .dark da var() orqali avtomatik almashadi —
      faqat literal qiymat (destructive) qayta belgilanadi. */
@@ -208,15 +206,16 @@ header,
 @keyframes lyra-fade-up {
   from {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(10px) scale(0.985);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 .lyra-fade-up {
-  animation: lyra-fade-up 0.32s ease-out both;
+  animation: lyra-fade-up 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: var(--lyra-delay, 0s);
 }
 
 @keyframes lyra-fade-in {
@@ -229,6 +228,88 @@ header,
 }
 .lyra-fade-in {
   animation: lyra-fade-in 0.4s ease-out both;
+}
+
+/* ---- Shisha (glass) effekti — suzuvchi panellar uchun (header, modal) ----
+   Fon deyarli to'liq shaffofmas: ortidagi kontent ozgina "shishadek" ko'rinadi,
+   ammo UI hira/tumanli bo'lib qolmaydi. */
+.lyra-glass {
+  background: color-mix(in srgb, var(--color-canvas) 88%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.lyra-glass-strong {
+  background: color-mix(in srgb, var(--color-surface) 94%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ---- Rasm ko'rish (lightbox) ochilish animatsiyasi ---- */
+@keyframes lyra-zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.lyra-zoom-in {
+  animation: lyra-zoom-in 0.24s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ---- Toast (yuqori-markaz) kirish animatsiyasi ---- */
+@keyframes lyra-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.lyra-toast-in {
+  animation: lyra-toast-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ---- Splash ekran (yuklanish) ---- */
+@keyframes lyra-splash-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 0.75;
+  }
+}
+@keyframes lyra-splash-ring {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.lyra-splash-mark {
+  animation: lyra-splash-pulse 1.6s ease-in-out infinite;
+}
+.lyra-splash-ring::before,
+.lyra-splash-ring::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  border: 1.5px solid var(--color-accent);
+  animation: lyra-splash-ring 2.2s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
+}
+.lyra-splash-ring::after {
+  animation-delay: 1.1s;
 }
 
 /* "O'ylamoqda" nuqtalari */

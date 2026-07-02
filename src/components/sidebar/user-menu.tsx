@@ -16,6 +16,7 @@ import {
 import { useAuth } from "@/hooks/use-auth";
 import { LANGUAGES } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { toast } from "@/store/toast-store";
 import { useUiStore } from "@/store/ui-store";
 
 export function UserMenu({
@@ -34,6 +35,7 @@ export function UserMenu({
 
   const handleLogout = async () => {
     await signOut();
+    toast(t("chat.toastSignedOut"), "success");
     router.replace("/login");
   };
 
