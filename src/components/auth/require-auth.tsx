@@ -41,35 +41,21 @@ export function RequireAuth({
       return;
     }
     let cancelled = false;
-    // eslint-disable-next-line no-console
-    console.error("[lyra-debug] session check start, current user:", useAuthStore.getState().user);
     void getSession().then((serverUser) => {
-      // eslint-disable-next-line no-console
-      console.error("[lyra-debug] session check result, cancelled:", cancelled, "serverUser:", serverUser);
       if (cancelled) return;
       const store = useAuthStore.getState();
       if (serverUser) store.setUser(serverUser);
-      else if (store.user) {
-        // eslint-disable-next-line no-console
-        console.error("[lyra-debug] CLEARING user because serverUser was falsy");
-        store.clear();
-      }
+      else if (store.user) store.clear();
       setChecking(false);
     });
     return () => {
       cancelled = true;
-      // eslint-disable-next-line no-console
-      console.error("[lyra-debug] RequireAuth unmounting/cleanup");
     };
   }, [hydrated]);
 
   useEffect(() => {
     if (!hydrated || checking) return;
-    // eslint-disable-next-line no-console
-    console.error("[lyra-debug] redirect-check effect: user=", user, "onboarded=", onboarded, "requireOnboarded=", requireOnboarded);
     if (!user) {
-      // eslint-disable-next-line no-console
-      console.error("[lyra-debug] REDIRECTING TO /login because user is falsy");
       router.replace("/login");
     } else if (requireOnboarded && !onboarded) {
       router.replace("/onboarding");

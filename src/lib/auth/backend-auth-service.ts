@@ -12,13 +12,20 @@ import type { AuthService, AuthUser } from "./types";
  *   3. Keyingi so'rovlar (chat, conversations) cookie bilan avtomatik himoyalanadi.
  *
  * Sirlar va sessiya serverda — brauzerda token saqlanmaydi.
+ *
+ * MUHIM: metodlar arrow-function klass maydonlari sifatida yozilgan
+ * (oddiy metod emas), chunki chaqiruvchi tomonlar (masalan RequireAuth)
+ * `getAuthService().getSession` kabi metodni obyektdan ajratib olib,
+ * keyin alohida chaqiradi — oddiy metodda bunda `this` yo'qolib,
+ * `this.toUser` chaqirilganda "Cannot read properties of undefined" xatosi
+ * berardi.
  */
 export class BackendAuthService implements AuthService {
-  preload(): void {
+  preload = (): void => {
     loadGis().catch(() => {});
-  }
+  };
 
-  async signInWithGoogle(): Promise<AuthUser> {
+  signInWithGoogle = async (): Promise<AuthUser> => {
     const accessToken = await getGoogleAccessToken();
 
     const res = await fetch(`${config.apiUrl}/auth/google`, {
@@ -31,9 +38,9 @@ export class BackendAuthService implements AuthService {
       throw new Error("Server kirishni rad etdi. Qayta urinib ko'ring.");
     }
     return this.toUser(await res.json());
-  }
+  };
 
-  async getSession(): Promise<AuthUser | null> {
+  getSession = async (): Promise<AuthUser | null> => {
     try {
       // cache: "no-store" — 304 (Not Modified) keshini oldini olamiz, aks holda
       // res.ok=false bo'lib sessiya yo'qdek ko'rinadi.
@@ -41,14 +48,7 @@ export class BackendAuthService implements AuthService {
         credentials: "include",
         cache: "no-store",
       });
-      // eslint-disable-next-line no-console
-      console.error("[lyra-debug] /auth/me status:", res.status, res.ok);
-      if (res.ok) {
-        const body = await res.json();
-        // eslint-disable-next-line no-console
-        console.error("[lyra-debug] /auth/me body:", body);
-        return this.toUser(body);
-      }
+      if (res.ok) return this.toUser(await res.json());
 
       // Access token muddati tugagan bo'lishi mumkin — refresh'ni sinab ko'ramiz.
       if (res.status === 401) {
@@ -57,24 +57,20 @@ export class BackendAuthService implements AuthService {
           credentials: "include",
           cache: "no-store",
         });
-        // eslint-disable-next-line no-console
-        console.error("[lyra-debug] /auth/refresh status:", refreshed.status, refreshed.ok);
         if (refreshed.ok) return this.toUser(await refreshed.json());
       }
       return null;
-    } catch (err) {
-      // eslint-disable-next-line no-console
-      console.error("[lyra-debug] getSession threw:", err);
+    } catch {
       return null;
     }
-  }
+  };
 
-  async signOut(): Promise<void> {
+  signOut = async (): Promise<void> => {
     await fetch(`${config.apiUrl}/auth/logout`, {
       method: "POST",
       credentials: "include",
     }).catch(() => {});
-  }
+  };
 
   private toUser(raw: unknown): AuthUser {
     const u = raw as {
