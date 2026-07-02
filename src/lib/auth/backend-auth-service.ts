@@ -41,7 +41,14 @@ export class BackendAuthService implements AuthService {
         credentials: "include",
         cache: "no-store",
       });
-      if (res.ok) return this.toUser(await res.json());
+      // eslint-disable-next-line no-console
+      console.error("[lyra-debug] /auth/me status:", res.status, res.ok);
+      if (res.ok) {
+        const body = await res.json();
+        // eslint-disable-next-line no-console
+        console.error("[lyra-debug] /auth/me body:", body);
+        return this.toUser(body);
+      }
 
       // Access token muddati tugagan bo'lishi mumkin — refresh'ni sinab ko'ramiz.
       if (res.status === 401) {
@@ -50,10 +57,14 @@ export class BackendAuthService implements AuthService {
           credentials: "include",
           cache: "no-store",
         });
+        // eslint-disable-next-line no-console
+        console.error("[lyra-debug] /auth/refresh status:", refreshed.status, refreshed.ok);
         if (refreshed.ok) return this.toUser(await refreshed.json());
       }
       return null;
-    } catch {
+    } catch (err) {
+      // eslint-disable-next-line no-console
+      console.error("[lyra-debug] getSession threw:", err);
       return null;
     }
   }
