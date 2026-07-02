@@ -36,6 +36,8 @@ export default function LoginPage() {
 
   const handleSignIn = async () => {
     const u = await signIn();
+    // eslint-disable-next-line no-console
+    console.error("[lyra-debug] handleSignIn result:", u, "onboarded:", onboarded);
     if (u) router.replace(onboarded ? "/chat" : "/onboarding");
   };
 
