@@ -92,6 +92,25 @@ export default function OgImage() {
       >
         {config.tagline}
       </div>
+
+      {/* Call-to-action — bosilishni (CTR) oshiradi */}
+      <div
+        style={{
+          marginTop: 40,
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          padding: "18px 40px",
+          borderRadius: 9999,
+          background: "#6d4aff",
+          color: "#ffffff",
+          fontSize: 32,
+          fontWeight: 600,
+          boxShadow: "0 16px 44px -14px rgba(109,74,255,0.7)",
+        }}
+      >
+        Bepul boshlash →
+      </div>
     </div>,
     { ...size },
   );
